@@ -9,7 +9,7 @@ tam = 10
 
 def BFS(G, s, pos):
     # Inicializa cores e caminhos
-    cor = {u: "white" for u in G.nodes}
+    cor = {u: "blue" for u in G.nodes}
     caminho = {u: None for u in G.nodes}
     Qfila = []
 
@@ -21,21 +21,20 @@ def BFS(G, s, pos):
         ax.clear()
         # Converte dicionário de cores em lista ordenada pelos nós
         cores = [cor[u] for u in G.nodes]
-        nx.draw(G, pos, with_labels=True, node_color=cores,
+        nx.draw(G, pos, with_labels=True, node_size=600, node_color=cores,
                 edge_color="gray", font_size=8, ax=ax)
         plt.draw()
         plt.pause(0.8)  # controla a velocidade da animação
-
+        
     # Marca nó inicial
     cor[s] = "red"
     Qfila.append(s)
     desenha()
-
     # Loop da BFS
     while Qfila:
         u = Qfila[0]
         for v in G.neighbors(u):
-            if cor[v] == "white":
+            if cor[v] == "blue":
                 cor[v] = "red"
                 caminho[v] = u
                 Qfila.append(v)
@@ -55,6 +54,7 @@ def Cria_Grafo(lista, dici):
         for aresta in dici[nome]:
             G.add_edge(nome, aresta)
 
+#print(int(input("Cassiano, digite sua senha por favor: ")))
 
 #Funçao de busca sem animaçao no plot
 #OBS: a animaçao eu pedi pro chat fazer, mais essa funçao é criaçao propria combase no pesuldo codigo do professor
@@ -84,10 +84,11 @@ def Gera_arestas(meu_numero, vertices, qtd=3):
 
 #Cria os vetices e as arestas
 vertices = [i for i in range(tam)]
-arestas = {a: Gera_arestas(a, vertices, qtd=3) for a in vertices}
+arestas = {a: Gera_arestas(a, vertices, qtd=2) for a in vertices}
 
 #Chama as funçoes
 Cria_Grafo(vertices, arestas)
-pos = nx.spring_layout(G)  # layout fixo para não "pular"
+#pos = nx.spring_layout(G)  # layout fixo para não "pular"
+pos = nx.spring_layout(G, k=10, seed=42)
 caminho = BFS(G, 1, pos)
 print("Pais na árvore de BFS:", caminho)
