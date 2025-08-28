@@ -1,4 +1,5 @@
 import pandas as pd
+import glob
 
 def Colocar_Nota_10_para_4(arquivo):
     valor = (arquivo['Avaliar/10,0'])
@@ -66,15 +67,18 @@ def Retira_Mais_Um_Envio(arquivo):
 
 
 def main():
-    local = '19190004038-P03-2025-2-Questionário 1 sobre a linguagem CC++-notas.xlsx'
-    arquivo = pd.read_excel(local)
-    arquivo.to_excel('arquivo_modificado.xlsx', index=False)#Copia
-    local = 'arquivo_modificado.xlsx'
-    arquivo = pd.read_excel(local)
-    arquivo = Colocar_Nota_10_para_4(arquivo)
-    for i in range(10):
-        arquivo = Retira_Mais_Um_Envio(arquivo)
-        arquivo.to_excel('arquivo_modificado.xlsx', index=False) # index=False para não incluir o índice do DataFrame no arquivo
+    arquivos = glob.glob('*.xlsx')
+    for arquivo_nome in arquivos:
+        arquivo = pd.read_excel(arquivo_nome)
+        if 'Nota Final'in arquivo.columns:
+            print("A coluna Nota final ja existe.")
+        else:
+            numero_colunas = len(arquivo.iloc[0])
+            arquivo.insert(numero_colunas,'Nota Final',0)
+        arquivo = Colocar_Nota_10_para_4(arquivo)
+        for i in range(10):
+            arquivo = Retira_Mais_Um_Envio(arquivo)
+            arquivo.to_excel(arquivo_nome, index=False) # index=False para não incluir o índice do DataFrame no arquivo
 
 
 main()
