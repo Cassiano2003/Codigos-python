@@ -7,41 +7,48 @@ import time
 G = nx.Graph()
 tam = 10
 
+def desenha(plt,ax,cor,ares):
+        ax.clear()
+        # Converte dicionário de cores em lista ordenada pelos nós
+        cores_nodes = [cor[u] for u in G.nodes]
+        cores_edge = [ares[u] for u in G.edges]
+        nx.draw(G, pos, with_labels=True, node_size=600, node_color=cores_nodes,
+                edge_color=cores_edge, font_size=8, ax=ax)
+        plt.draw()
+        plt.pause(1)  # controla a velocidade da animação
+
+#Busca em largura
 def BFS(G, s, pos):
     # Inicializa cores e caminhos
     cor = {u: "blue" for u in G.nodes}
+    #Cores das arestas
+    ares = {u: "gray" for u in G.edges}
     caminho = {u: None for u in G.nodes}
     Qfila = []
 
     # Inicia matplotlib no modo interativo
     plt.ion()
     fig, ax = plt.subplots()
-
-    def desenha():
-        ax.clear()
-        # Converte dicionário de cores em lista ordenada pelos nós
-        cores = [cor[u] for u in G.nodes]
-        nx.draw(G, pos, with_labels=True, node_size=600, node_color=cores,
-                edge_color="gray", font_size=8, ax=ax)
-        plt.draw()
-        plt.pause(0.8)  # controla a velocidade da animação
         
     # Marca nó inicial
     cor[s] = "red"
     Qfila.append(s)
-    desenha()
+    desenha(plt,ax,cor,ares)
     # Loop da BFS
     while Qfila:
         u = Qfila[0]
         for v in G.neighbors(u):
+            edges = (u, v) # Vai gerar qual é aresta q estamos visitando
+            ares[edges] = "green"
             if cor[v] == "blue":
                 cor[v] = "red"
                 caminho[v] = u
                 Qfila.append(v)
-                desenha()
+                desenha(plt,ax,cor,ares)
+            ares[edges] = "gray"
         Qfila.pop(0)
         cor[u] = "black"
-        desenha()
+        desenha(plt,ax,cor,ares)
 
     plt.ioff()
     plt.show()
