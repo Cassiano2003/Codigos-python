@@ -8,7 +8,7 @@ def Colocar_Nota_10_para_4(arquivo):
     for i,n in enumerate(valor):
         novos_valores = (n.replace(',','.'))
         if len(valor)-1 > i:
-            if float(novos_valores) >= 4.3:
+            if float(novos_valores) >= 4:
                 arquivo.loc[i,'Nota Final'] = '10,0'
             else:
                 arquivo.loc[i,'Nota Final'] = arquivo.loc[i,'Avaliar/10,0']
@@ -92,9 +92,9 @@ def main():
         else:
             numero_colunas = len(arquivo.iloc[0])
             arquivo.insert(numero_colunas,'Nota Final',0)
-        arquivo = Colocar_Nota_10_para_4(arquivo)
-        arquivo = Retira_Mais_Um_Envio(arquivo)
-        arquivo.to_excel(arquivo_nome, index=False) # index=False para não incluir o índice do DataFrame no arquivo
+            arquivo = Colocar_Nota_10_para_4(arquivo)
+            arquivo = Retira_Mais_Um_Envio(arquivo)
+            arquivo.to_excel(arquivo_nome, index=False) # index=False para não incluir o índice do DataFrame no arquivo
 
 
 main()
