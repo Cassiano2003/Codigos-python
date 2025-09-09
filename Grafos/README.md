@@ -8,7 +8,7 @@ Para poder compilar esses codigos e necesatio ter algumas bibliotecas, como:
 * random
 
 ## Modificaçoes
-Caso queira modificar alguma coisa, sera necesario mecher nas bibliotecas proprias desse projeto, qua são:\
+Caso queira modificar alguma coisa, sera necesario mecher nas bibliotecas proprias desse projeto.\
 Para poder colocar mais arquivos nas bibliotecas do projeto é bem simples é só colocar eles na onde você quer, e depois use o comando **pip install .** para compilar a nova biblioteca e assim podera chamar a nova função do mesmo jeito que as outras.
 
 ### Biblioteca Geral
