@@ -49,7 +49,7 @@ def BFS(G, s, pos):
         Qfila.pop(0)
         cor[u] = "black"
         desenha(plt,ax,cor,ares)
-
+        
     plt.ioff()
     plt.show()
     return caminho
