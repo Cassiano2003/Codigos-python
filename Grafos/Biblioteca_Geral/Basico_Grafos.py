@@ -2,6 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import random
 
+#Funçao que faz a animação das trocas de cores
 def desenha(G,pos,plt,ax,node,edges):
         ax.clear()
         # Converte dicionário de cores em lista ordenada pelos nós
@@ -34,7 +35,8 @@ def Gera_arestas(meu_numero, vertices, qtd=3):
     possiveis = [v for v in vertices if v != meu_numero]
     return random.sample(possiveis, k=min(qtd, len(possiveis)))
 
-def Gera_Dicionarios(tam,quant):
+#Vai gerar um grafo aleatorio, entao ele pode ser qualquer grafo
+def Gera_Vertices_E_Arestas_Para_Um_Grafo_Qualquer(tam,quant):
      #Cria os vetices e as arestas
     vertices = [i for i in range(tam)]
     arestas = {a: Gera_arestas(a, vertices, qtd=quant) for a in vertices}

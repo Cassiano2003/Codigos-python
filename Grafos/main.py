@@ -19,7 +19,7 @@ def main():
         quant = int(input("Digite a quantidade maxima de edges por nodes: "))
         print("--------------------------------------------")
         #Cria os vetices e as arestas
-        vertices, arestas = bg.Gera_Dicionarios(tam,quant)
+        vertices, arestas = bg.Gera_Vertices_E_Arestas_Para_Um_Grafo_Qualquer(tam,quant)
         bg.Cria_Grafo(G,vertices, arestas)
         pos = bg.nx.spring_layout(G, k=10, seed=42)
     caminho = 0
