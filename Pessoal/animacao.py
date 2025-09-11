@@ -21,7 +21,7 @@ def arc(a, b, calls=None, depth=0, parent=None):
 class ArcRecursionTree(MovingCameraScene):
     def construct(self):
         calls = []
-        result = arc(1, 3, calls)
+        result = arc(2, 10, calls)
 
         # Cria os nós (todos começam no topo da tela)
         nodes = [Text(f"arc({a},{b})", font_size=28).move_to(UP * 3) for (a, b, _, _) in calls]
