@@ -14,7 +14,9 @@ class Aluno:
     def adicionar_nota_final(self, nota: float):
         self.notas_finais.append(nota)  # ✅ Nova função para armazenar
 
-    def calcular_media(self) -> float:
+    def calcular_media(self,div) -> float:
         if not self.notas_finais:
             return 0.0
-        return sum(self.notas_finais) / len(self.notas_finais)
+        return sum(self.notas_finais) / div
+    def __str__(self):
+        return f"{self.email} | {self.primeiro_nome} {self.segundo_nome} | {self.notas_finais} | {self.nota_final}"

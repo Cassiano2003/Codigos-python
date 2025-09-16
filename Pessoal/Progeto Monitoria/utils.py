@@ -39,29 +39,54 @@ def escolher_arquivos(arquivos: list[str]) -> list[int]:
         print("⚠️ Números inválidos, tente novamente.")
 
 # ===================== Leitura e Criação de Alunos =====================
-def carregar_alunos_de_excel(caminho: str, questoes: int) -> list[Aluno]:
-    df = pd.read_excel(caminho)
-    emails = df["Endereço de email"]
-    nomes = df["Nome"]
-    sobrenomes = df["Sobrenome"]
+def carregar_alunos_de_excel(caminho: str, questoes: int = 0) -> tuple[list[Aluno], pd.DataFrame]:
+    try:
+        df = pd.read_excel(caminho)
+        
+        # Verifica se as colunas necessárias existem
+        colunas_necessarias = ["Endereço de email", "Nome", "Sobrenome"]
+        for coluna in colunas_necessarias:
+            if coluna not in df.columns:
+                raise ValueError(f"Coluna '{coluna}' não encontrada no arquivo")
+        
+        emails = df["Endereço de email"]
+        nomes = df["Nome"]
+        sobrenomes = df["Sobrenome"]
 
-    if questoes != 0:
-        atividades = pd.to_numeric(
-            df["Avaliar/10,0"].astype(str).str.replace(",", "."),
-            errors="coerce"
-        )
-
-    alunos = []
-    for i in range(len(df)):
-        aluno = Aluno(emails[i], nomes[i], sobrenomes[i])
-        if questoes != 0:
-            aluno.nota_atividade = atividades[i]
-        for j in range(8, 8 + questoes):
-            nota = pd.to_numeric(str(df.iloc[i, j]).replace(",", "."), errors="coerce")
-            if pd.notna(nota):
-                aluno.adicionar_nota_exercicio(float(nota))
-        alunos.append(aluno)
-    return alunos, df
+        alunos = []
+        for i in range(len(df)):
+            aluno = Aluno(emails[i], nomes[i], sobrenomes[i])
+            
+            # Processa notas apenas se solicitado
+            if questoes > 0:
+                # Nota de atividade (se existir)
+                if "Avaliar/10,0" in df.columns:
+                    atividades = pd.to_numeric(
+                        df["Avaliar/10,0"].astype(str).str.replace(",", "."),
+                        errors="coerce"
+                    )
+                    aluno.nota_atividade = atividades.iloc[i] if i < len(atividades) else 0.0
+                
+                # Notas dos exercícios
+                coluna_inicio = 8  # ou a coluna onde começam as questões
+                for j in range(coluna_inicio, coluna_inicio + questoes):
+                    if j < len(df.columns):
+                        try:
+                            valor = df.iloc[i, j]
+                            if pd.notna(valor):
+                                nota = pd.to_numeric(str(valor).replace(",", "."), errors="coerce")
+                                if pd.notna(nota):
+                                    aluno.adicionar_nota_exercicio(float(nota))
+                        except:
+                            continue
+            
+            alunos.append(aluno)
+        
+        return alunos, df
+        
+    except Exception as e:
+        print(f"Erro ao carregar arquivo: {e}")
+        return [], pd.DataFrame()
 
 def calcular_nota_final(aluno: Aluno, nota_corte: float):
     acertos = sum(1 for n in aluno.notas_exercicios if n >= nota_corte)
@@ -78,7 +103,7 @@ def salvar_planilha_com_notas(df: pd.DataFrame, alunos: list[Aluno], caminho: st
 
     # 🔑 Mantém apenas a maior nota por aluno
     # Ordena pela maior Nota Final primeiro
-    df = df.sort_values("Avaliar/10,0", ascending=False)
+    df = df.sort_values("Endereço de email", ascending=False)
 
     # Remove duplicatas com base em Emails (pode trocar por "Endereço de email" se for mais seguro)
     df = df.drop_duplicates(subset=["Endereço de email"], keep="first")
@@ -95,6 +120,7 @@ def adicionar_notas_finais_em_alunos(alunos: list[Aluno]):
         return
 
     indices = escolher_arquivos(arquivos)
+    quantos_arquivos = len(indices)
 
     for idx in indices:
         caminho = arquivos[idx]
@@ -122,14 +148,22 @@ def adicionar_notas_finais_em_alunos(alunos: list[Aluno]):
                     aluno.adicionar_nota_final(float(nota))
                     break
 
-
 def gerar_arquivo_medias(alunos: list[Aluno], nome_arquivo: str):
-    # Calcula a média considerando todas as notas finais já filtradas (maior nota por arquivo)
+    # Determina quantas colunas NF precisamos (máximo de notas)
+    max_notas = max(len(a.notas_finais) for a in alunos) if alunos else 0
+    
     dados = {
-        "Sobrenome": [a.segundo_nome for a in alunos],
-        "Nome": [a.primeiro_nome for a in alunos],
+        "Nome Completo": [f"{a.primeiro_nome} {a.segundo_nome}" for a in alunos],
         "Endereço de email": [a.email for a in alunos],
-        "Média Final": [round(a.calcular_media(), 2) for a in alunos],
+        # Para cada posição de nota, cria uma coluna NF
+        **{f"NF{i+1}": [a.notas_finais[i] if i < len(a.notas_finais) else "0" for a in alunos] 
+           for i in range(max_notas)},
+        "Média Final": [round(a.calcular_media(max_notas), 2) for a in alunos],
     }
-    pd.DataFrame(dados).to_excel(nome_arquivo + ".xlsx", index=False)
-    print(f"✅ Arquivo '{nome_arquivo}.xlsx' gerado com as médias finais.")
+    
+    # Cria DataFrame e ordena por nome
+    df = pd.DataFrame(dados)
+    df = df.sort_values(by="Nome Completo")
+    
+    df.to_excel(nome_arquivo + ".xlsx", index=False)
+    print(f"✅ Arquivo '{nome_arquivo}.xlsx' gerado com {max_notas} colunas de notas (ordenado por nome).")
