@@ -1,0 +1,5 @@
+setup.py
+Caminhos_Minimos.egg-info/PKG-INFO
+Caminhos_Minimos.egg-info/SOURCES.txt
+Caminhos_Minimos.egg-info/dependency_links.txt
+Caminhos_Minimos.egg-info/top_level.txt

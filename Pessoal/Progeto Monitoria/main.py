@@ -1,100 +1,122 @@
 import os
 from models import Aluno
+import glob
+import pandas as pd
 from utils import (
-    pedir_inteiro, pedir_float,
-    listar_planilhas, escolher_arquivos,
-    carregar_alunos_de_excel, calcular_nota_final,
-    salvar_planilha_com_notas, adicionar_notas_finais_em_alunos,
+    Numeros_Validos,
+    Adiciona_notas,
+    Calcula_Nota_Final,
+    Coloca_Notas,
+    Alunos_Repetidos,
+    Menores_Notas,
+    Busca_Aluno,
+    Imprime_Alunos,
+    Pega_informacoes_atividades,
+    Pega_informacoes_chamada,
     gerar_arquivo_medias
 )
 
-def opcao_criar_coluna():
-    arquivos = listar_planilhas()
-    if not arquivos:
-        print("Nenhum arquivo .xlsx encontrado.")
-        return
+def menu(alunos):
+    os.system("clear")
+    arquivos = glob.glob('*.xlsx')
+    opcoes = ["[ 0 ] Criar a colona com as Notas Finais","[ 1 ] Criar um arquivo que vai ter a media das Notas Finais",
+              "[ 2 ] Criar um lista de alunos, para a manipulação","[ 3 ] Imprimir a lista de dados"]
+    print("------"*10)
+    for op in opcoes:
+        print(op)
+    print("------"*10)
+    escolha = int(input("Escolha qual sera a operação desejada: "))
+    print("------"*10)
+    print("Selecione os arquivos que queiras manipular.")
+    print("------"*10)
+    numros_escolhas = Numeros_Validos(arquivos)
+    print("------"*10)
+    match escolha:
+        case 0:
+            #Lendo o arquivo
+            for num in numros_escolhas:
+                os.system("clear")
+                print("Arquivo selecionado ",arquivos[num])
+                print("------"*10)
+                alunos = []
+                arquivo = pd.read_excel(arquivos[num])
 
-    indices = escolher_arquivos(arquivos)
+                #Gera a coluna final
 
-    for idx in indices:
-        caminho = arquivos[idx]
+                if 'Nota Final'in arquivo.columns:
+                    print("A coluna Nota final ja existe.")
+                else:
+                    numero_colunas = len(arquivo.iloc[0])
+                    arquivo.insert(numero_colunas,'Nota Final',0)
 
-        print("\n" + "=" * 60)
-        print(f"📂 Processando arquivo: {caminho}")
-        print("=" * 60 + "\n")
+                #Gero o vetor da Classe Alunos
 
-        # Pergunta a quantidade de questões e nota de corte para cada arquivo
-        questoes = pedir_inteiro("Quantas questões tem este arquivo: ", 1)
-        nota_corte = pedir_float("Digite a nota de corte para este arquivo: ")
+                email,nome,sobre,nota_final,nota_atividade = Pega_informacoes_atividades(arquivo=arquivo)
+                ques = int(input("Quantas questoes tem: "))
+                for i in range(len(arquivo)):
+                    aluno = Aluno(email[i],nome[i],sobre[i])
+                    aluno.Adiciona_Nota_Atividades(nota_atividade[i])
+                    Adiciona_notas(i,arquivo,8+ques,aluno)
+                    alunos.append(aluno)
 
-        # Carrega alunos e calcula nota final
-        alunos, df = carregar_alunos_de_excel(caminho, questoes)
-        for aluno in alunos:
-            calcular_nota_final(aluno, nota_corte)
+                #Vai gerar as notas de cada aluno
 
-        # Salva a planilha atualizada, removendo duplicatas e mantendo a maior nota
-        salvar_planilha_com_notas(df, alunos, caminho)
+                nota_corte = float(input("Digite a nota de corte: "))
+                for aluno in alunos:
+                    Calcula_Nota_Final(aluno,nota_corte)
 
-def opcao_gerar_medias(lista_alunos: list[Aluno]):
-    if not lista_alunos:
-        print("⚠️ Crie a lista de alunos primeiro (opção 2).")
-        return
+                alunos.pop(len(alunos)-1)
+                #Coloca as notas de cada aluno na planilha
+                
+                arquivo = Coloca_Notas(alunos,arquivo)
+                repetidos = Alunos_Repetidos(alunos)
+                menores = Menores_Notas(repetidos,alunos)
+                arquivo = arquivo.drop(menores)
+                arquivo = arquivo.reset_index(drop=True)
+                #Imprime_Alunos(alunos)
+                arquivo.to_excel(arquivos[num], index=False) # index=False para não incluir o índice do DataFrame no arquivo
+        case 1:
+            for num in numros_escolhas:
+                arquivo = pd.read_excel(arquivos[num])
+                email,nome,sobre,nota_final,nota_atividade = Pega_informacoes_atividades(arquivo=arquivo)
+                if len(alunos) == 0:
+                    print("Primeiro crie a lista de dados com a os nomes, sobrenome e emails dos alunos.")
+                    break
+                elif len(alunos) > 0:
+                    for i,em in enumerate(email):
+                        lugar = Busca_Aluno(em,alunos)
+                        nova_nota = float(str(nota_final[i]).replace(",", "."))
+                        if lugar != -1:
+                            alunos[lugar].Adiciona_Notas_Final(nova_nota)
+            for aluno in alunos:
+                aluno.Calcula_Media(len(numros_escolhas))
+            alunos.pop(len(alunos)-1)
+            nome_arquivo = input("Digite o nome do arquivo: ")
+            nome_arquivo = nome_arquivo+".xlsx"
+            gerar_arquivo_medias(alunos,nome_arquivo)
+        case 2:
+            for num in numros_escolhas:
+                arquivo = pd.read_excel(arquivos[num])
+                nome, sobre, email = Pega_informacoes_chamada(arquivo)
+                if len(alunos) == 0:
+                    em_tam, nm_tam, sb_tam = len(email),len(nome),len(sobre)
+                    if(em_tam == nm_tam == sb_tam):
+                        for i in range(em_tam):
+                            aluno = Aluno(email[i],nome[i],sobre[i])
+                            alunos.append(aluno)
+                else:
+                    print("A lista de dados já existe!!!")
+        case 3:
+            Imprime_Alunos(alunos)
+        case _:
+            print("Não tem essa operação\nPrograma finalizado!!!")
+            return False,alunos
+    print("------"*10)
+    input("Precione entter para continuar")
+    return True,alunos
 
-    # Adiciona notas finais de vários arquivos para cada aluno, mantendo apenas a maior nota
-    adicionar_notas_finais_em_alunos(lista_alunos)
 
-    nome = input("Digite o nome do arquivo de saída: ")
-    gerar_arquivo_medias(lista_alunos, nome)
-
-def opcao_criar_lista() -> list[Aluno]:
-    arquivos = listar_planilhas()
-    if not arquivos:
-        print("Nenhum arquivo .xlsx encontrado.")
-        return []
-
-    idx = pedir_inteiro(f"Escolha o arquivo [0-{len(arquivos)-1}]: ", 0, len(arquivos)-1)
-
-    print("\n" + "=" * 60)
-    print(f"📂 Criando lista a partir do arquivo: {arquivos[idx]}")
-    print("=" * 60 + "\n")
-
-    questoes = pedir_inteiro("Quantas questões tem este arquivo (apenas para leitura inicial): ", 1)
-    alunos, _ = carregar_alunos_de_excel(arquivos[idx], questoes)
-
-    print(f"✅ Lista de alunos criada ({len(alunos)} registros) a partir de: {arquivos[idx]}")
-    return alunos
-
-def opcao_imprimir(lista_alunos: list[Aluno]):
-    if not lista_alunos:
-        print("⚠️ Lista de alunos vazia.")
-    else:
-        for a in lista_alunos:
-            print(a)
-
-def menu():
-    alunos: list[Aluno] = []
-    opcoes = {
-        0: opcao_criar_coluna,
-        1: lambda: opcao_gerar_medias(alunos),
-        2: lambda: alunos.extend(opcao_criar_lista()),
-        3: lambda: opcao_imprimir(alunos)
-    }
-
-    while True:
-        print("\n" + "-" * 50)
-        print("0 - Criar/Atualizar coluna de notas finais")
-        print("1 - Gerar arquivo com médias finais")
-        print("2 - Criar lista de alunos")
-        print("3 - Imprimir lista de alunos")
-        print("4 - Sair")
-
-        escolha = pedir_inteiro("Escolha uma opção: ", 0, 4)
-        if escolha == 4:
-            print("Programa finalizado.")
-            break
-
-        os.system("clear" if os.name == "posix" else "cls")
-        opcoes[escolha]()
-
-if __name__ == "__main__":
-    menu()
+continua = type
+alunos = []
+while continua:
+    continua,alunos = menu(alunos)

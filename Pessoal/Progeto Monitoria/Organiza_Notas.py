@@ -35,7 +35,7 @@ class Aluno:
     def __str__(self):
         return f"{self.Primeiro_nome} {self.Segundo_nome} e suas notas é {self.Nota_Exercicios},notas de atividades {self.Nota_Atividade} e sua nota final é {self.Nota}\nAs notas finais{self.Nota_Final} e a media desse aluno é {self.Media_Final}"
 
-def Menores_Notas(repetidos,alunos,arquivo):
+def Menores_Notas(repetidos,alunos):
     menores = []
     for emais in repetidos:
         maior = -1
@@ -198,7 +198,7 @@ def menu(alunos):
                 
                 arquivo = Coloca_Notas(alunos,arquivo)
                 repetidos = Alunos_Repetidos(alunos)
-                menores = Menores_Notas(repetidos,alunos,arquivo)
+                menores = Menores_Notas(repetidos,alunos)
                 arquivo = arquivo.drop(menores)
                 arquivo = arquivo.reset_index(drop=True)
                 #Imprime_Alunos(alunos)
