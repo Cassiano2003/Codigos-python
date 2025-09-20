@@ -16,7 +16,8 @@ def main():
     if qual_tipo <= len(tipos_grafos)-1:
         print("--------------------------------------------")
         vertices,arestas = [], {} 
-        if input("Criar grafo manualment s ou n: ") == "s":
+        qual = input("Criar Grafo:\np = padrao\ns = sim\nn = nao\nQual vai escolher: ")
+        if qual == "s" or qual == "S":
             print("Os valores das arestas se o grafo for direcinal vai ser a direçao das arestas!!!")
             v = input("Digite os nomes dos vetices separados por uma virgula: ")
             v = v.split(',')
@@ -30,13 +31,16 @@ def main():
                     print("Digite a qual node o vertice",v,"ele vai se conectar: ",end="")
                     l.append(int(input()))
                 arestas[v] = l
-            print(vertices,"\n",arestas)
+        elif  qual == "p" or qual == "P":
+            vertices = [0,1,2,3,4]
+            arestas = {0:[1,2],1:[3,4,2],2:[3,4],3:[1],4:[3,0]}
         else:
             tam = int(input("Digite a quantidade de nodes: "))
             quant = int(input("Digite a quantidade maxima de edges por nodes: "))
             print("--------------------------------------------")
             #Cria os vetices e as arestas
             vertices, arestas = bg.Gera_Vertices_E_Arestas_Para_Um_Grafo_Qualquer(tam,quant)
+        print(vertices,"\n",arestas)
         match qual_tipo:
             case 0:
                 bg.Cria_Grafo_Sem_Direcao(G,vertices, arestas)

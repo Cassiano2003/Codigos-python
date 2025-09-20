@@ -10,12 +10,12 @@ def desenha(G:nx.Graph,pos:dict,plt:plt.figure,ax:plt.axes):
         cores_edge = [G.edges[u]["cor"] for u in G.edges]
         labels = nx.get_edge_attributes(G, "peso")
         nx.draw(G, pos, with_labels=False, node_size=600, node_color=cores_nodes,
-                edge_color=cores_edge, font_size=8, ax=ax)
+                edge_color=cores_edge, font_size=8,connectionstyle='arc3,rad=0.1', ax=ax)
         nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
         labels = {n: G.nodes[n]["valor"] for n in G.nodes}
         nx.draw_networkx_labels(G, pos, labels=labels, font_color="black")
         plt.draw()
-        plt.pause(1)  # controla a velocidade da animação
+        plt.pause(0.5)  # controla a velocidade da animação
 
 
 #----Basico para as aresas e vertices-----
@@ -23,41 +23,63 @@ def desenha(G:nx.Graph,pos:dict,plt:plt.figure,ax:plt.axes):
 def Gera_pesos() -> int:
     return random.randint(1, 10)
 #Funçao que gera os pesos para as arestas e as cores para os nodes e as arestas
-def Cor_Caminho(G,negativo:bool=False):
+def Cor_Caminho(G,negativo:bool=False,gera_peso:bool=True):
     for v in G.nodes:
         G.nodes[v]["cor"] = "blue"
         G.nodes[v]["caminho"] = None
         G.nodes[v]["valor"] = float('inf')
     for e in G.edges:
         G.edges[e]["cor"] = "gray"
-        if negativo:
-            G.edges[e]["peso"] = -Gera_pesos()
-            negativo = False if random.random() < 0.4 else True
-        else:
-            G.edges[e]["peso"] = Gera_pesos()
+        if gera_peso:
+            if negativo:
+                G.edges[e]["peso"] = -Gera_pesos()
+                negativo = False if random.random() < 0.4 else True
+            else:
+                G.edges[e]["peso"] = Gera_pesos()
     return G
 
     
 #----Criaçao de Grafo qualquer sem direção-----
 #Funçao q usa a lista e o dicionario para criar o grafo
-def Cria_Grafo_Sem_Direcao(G:nx.Graph,lista:list, dici:dict):
-    for nome in lista:
-        G.add_node(nome)  
-        for aresta in dici[nome]:
-            G.add_edge(nome, aresta)
+def Cria_Grafo_Sem_Direcao(G:nx.Graph,vetices:list, arestas:dict):
+    for v in vetices:
+        G.add_node(v)  
+        for a in arestas[v]:
+            G.add_edge(v, a)
 
-def Cria_Grafo_Com_Direcao(G:nx.DiGraph,lista:list, dici:dict):
-    for nome in lista:
-        G.add_node(nome)  
-        for aresta in dici[nome]:
-            G.add_edge(nome, aresta)
+def Cria_Grafo_Com_Direcao(G:nx.DiGraph,vetices:list, arestas:dict):
+    for v in vetices:
+        G.add_node(v)  
+        for a in arestas[v]:
+            G.add_edge(v, a)
 
 def Relachamento(G:nx.Graph,u,v,c):
     if G.nodes[v]["valor"] > G.nodes[u]["valor"]+c:
         G.nodes[v]["valor"] = G.nodes[u]["valor"]+c
-        G.nodes[v]["caminho"] = u
+        if G.nodes[v]["caminho"] != None:
+            no = G.nodes[v]["caminho"]
+            ed = (no,v)
+            G.edges[ed]["cor"] = "gray"
+        G.nodes[v]["caminho"] = u    
         G.nodes[v]["cor"] = "red"
         G.edges[(u,v)]["cor"] = "black"
+
+
+def Gera_sub_Grafo(G:nx.Graph,s = 0,direcinal:bool=False):
+    H = nx.Graph()
+    if direcinal:
+        H = nx.DiGraph()
+    vertices = []
+    arestas = []
+    for v in G.nodes:
+        no = G.nodes[v]["caminho"]
+        if no != None or v == s:
+            vertices.append(v)
+            arestas.append((no,v))
+    print(vertices,"\n",arestas)
+    H.add_nodes_from((n, G.nodes[n]) for n in vertices)
+    H.add_edges_from((u, v, G.edges[u, v]) for (u, v) in arestas if u is not None)
+    return H
 
 
 #Funçao q gera algumas aresta aleatoriamente (OBS: Chat q fez)

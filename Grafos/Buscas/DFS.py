@@ -26,5 +26,7 @@ def DFS(G:nx.Graph,pos:dict):
         if G.nodes[u]["cor"] == "blue":
             G = DFS_Visita(G,u,pos,ax)
     plt.ioff()
-    plt.show()
+    plt.show(block=False)
+    plt.pause(2)
+    plt.close()
     return G

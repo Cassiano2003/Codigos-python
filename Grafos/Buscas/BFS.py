@@ -32,5 +32,7 @@ def BFS(G:nx.Graph, s, pos):
         bg.desenha(G,pos,plt,ax)
         
     plt.ioff()
-    plt.show()
+    plt.show(block=False)
+    plt.pause(2)
+    plt.close()
     return G
