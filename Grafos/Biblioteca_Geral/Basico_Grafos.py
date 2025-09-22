@@ -23,19 +23,18 @@ def desenha(G:nx.Graph,pos:dict,plt:plt.figure,ax:plt.axes):
 def Gera_pesos() -> int:
     return random.randint(1, 10)
 #Funçao que gera os pesos para as arestas e as cores para os nodes e as arestas
-def Cor_Caminho(G,negativo:bool=False,gera_peso:bool=True):
+def Cor_Caminho(G,negativo:bool=False):
     for v in G.nodes:
         G.nodes[v]["cor"] = "blue"
         G.nodes[v]["caminho"] = None
         G.nodes[v]["valor"] = float('inf')
     for e in G.edges:
         G.edges[e]["cor"] = "gray"
-        if gera_peso:
-            if negativo:
-                G.edges[e]["peso"] = -Gera_pesos()
-                negativo = False if random.random() < 0.4 else True
-            else:
-                G.edges[e]["peso"] = Gera_pesos()
+        if negativo:
+            G.edges[e]["peso"] = -Gera_pesos()
+            negativo = False if random.random() < 0.4 else True
+        else:
+            G.edges[e]["peso"] = Gera_pesos()
     return G
 
     

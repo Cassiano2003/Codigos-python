@@ -3,6 +3,7 @@ import os
 import Buscas.DFS as DFS
 import Buscas.BFS as BFS
 import Caminhos_Minimos.Bellman_Ford as bf
+import Caminhos_Minimos.Dijkstra as di
 
 def main():
     os.system("clear")
@@ -71,7 +72,8 @@ def main():
                     else:
                         print("Caminha negativo encontrado")
                 case 3:
-                    print("nao esta pronto")
+                    inicio = int(input("Em qual node vai começar: "))
+                    di.Dijkstra(G,pos,inicio)
                 case 4:
                     return False
             print("--------------------------------------------")
