@@ -10,8 +10,8 @@ def Menores_Notas(repetidos: list[str],lista_alunos : list[Aluno]):
         local_maior = -1
         locais = Busca_Posicoes(emais,lista_alunos)
         for local in locais:
-            if lista_alunos[local].Nota_Atividade > maior:
-                maior = lista_alunos[local].Nota_Atividade
+            if lista_alunos[local].nota_atividade > maior:
+                maior = lista_alunos[local].nota_atividade
                 if local_maior != -1:
                     menores.append(local_maior)
                 local_maior = local
@@ -23,7 +23,7 @@ def Menores_Notas(repetidos: list[str],lista_alunos : list[Aluno]):
 def Busca_Posicoes(email: str,alunos: list[Aluno]):
     posicoes = []
     for i,aluno in enumerate(alunos):
-        if aluno.Email == email:
+        if aluno.email == email:
             posicoes.append(i)
     return posicoes
 
@@ -33,10 +33,10 @@ def Alunos_Repetidos(alunos: list[Aluno]):
     contagem = {}
     repetidos = []
     for aluno in alunos:
-        if aluno.Email in contagem:
-            contagem[aluno.Email] += 1
+        if aluno.email in contagem:
+            contagem[aluno.email] += 1
         else:
-            contagem[aluno.Email] = 1
+            contagem[aluno.email] = 1
     
     for email, cont in contagem.items():
         if cont > 1:
@@ -52,7 +52,7 @@ def Coloca_Notas(alunos: list[Aluno],arquivo: pd.DataFrame):
 #Vai calcular a nota final de cada aluno e adicionar essa nota no aluno
 def Calcula_Nota_Final(aluno: Aluno,nota_corte: float,qnt_execicios: int):
     quantas_notas = 0
-    for nota in aluno.Nota_Exercicios:
+    for nota in aluno.notas_exercicios:
         if nota >= nota_corte:
             quantas_notas += 1
     if quantas_notas >= qnt_execicios:
@@ -65,7 +65,7 @@ def Adiciona_notas(i: int,arquivo: pd.DataFrame,ate: int,aluno: Aluno):
     primeira_linha = arquivo.iloc[i]
     for j in range(8,ate):
         if str(primeira_linha[j]) == "-":
-            aluno.set_notas_exercicios(float(str(primeira_linha[j]).replace("0.0", "-")))
+            aluno.set_notas_exercicios(float(str(primeira_linha[j]).replace("-", "0")))
         else:
             aluno.set_notas_exercicios(float(str(primeira_linha[j]).replace(",", ".")))
 
@@ -88,7 +88,7 @@ def Pega_Informacoes_chamada(arquivo: pd.DataFrame):
 #Vai apenas buscas o aluno na lista de alunos criada apartir da lista de presenças
 def Busca_Aluno(email: str,list_alunos: list[Aluno]):
     for i,aluno in enumerate(list_alunos):
-        if aluno.Email == email:
+        if aluno.email == email:
             return i
     return -1
 
@@ -123,7 +123,7 @@ def gerar_arquivo_medias(alunos: list[Aluno], nome_arquivo: str):
         "Nome Completo": [f"{a.primeiro_nome} {a.segundo_nome}" for a in alunos],
         "Endereço de email": [a.email for a in alunos],
         # Para cada posição de nota, cria uma coluna NF
-        **{f"NF{i+1}": [a.notas_finais[i] if i < len(a.notas_finais) else "0" for a in alunos] 
+        **{f"NF{i+1}": [a.notas_para_media_final[i] if i < len(a.notas_para_media_final) else "0" for a in alunos] 
            for i in range(max_notas)},
         "Média Final": [round(a.calcular_media(max_notas), 2) for a in alunos],
     }

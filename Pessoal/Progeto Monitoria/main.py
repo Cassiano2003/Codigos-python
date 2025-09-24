@@ -12,7 +12,7 @@ from utils import (
     Busca_Aluno,
     Imprime_Alunos,
     Pega_informacoes_atividades,
-    Pega_informacoes_chamada,
+    Pega_Informacoes_chamada,
     gerar_arquivo_medias,
     limpa_tela
 )#Aqui vai chamar as funçoes do meu ultis.py que vao me permetir fazer as manipulaçoes do arquivo
@@ -67,8 +67,9 @@ def menu(alunos:list[Aluno]):
                 #Vai gerar as notas de cada aluno
 
                 nota_corte = float(input("Digite a nota de corte: "))
+                qnt_para_10 = int(input("Quantas notas cheias para ir com 10: "))
                 for aluno in alunos:
-                    Calcula_Nota_Final(aluno,nota_corte)
+                    Calcula_Nota_Final(aluno,nota_corte,qnt_para_10)
 
                 alunos.pop(len(alunos)-1)
                 #Coloca as notas de cada aluno na planilha
@@ -104,7 +105,7 @@ def menu(alunos:list[Aluno]):
             #Vai calcular a media final para todos os alunos 
             div = len(numros_escolhas)#Quantas notas sao no total
             for aluno in alunos:
-                aluno.Calcula_Media(div)
+                aluno.calcular_media(div)
             #Vai retirar o ultimo pois o ultimo é arquele media do arquivo e eu nao quero ele
             alunos.pop(len(alunos)-1)
             #Vai perguntar qual sera o nome do arquivo que vai conter as medias finais
@@ -113,10 +114,11 @@ def menu(alunos:list[Aluno]):
             #E por fim chama a funçao para gerar o arquivo de medias finais de todos os alunos
             gerar_arquivo_medias(alunos,nome_arquivo)
         case 2:# É para fazer a criaçao da lista de alunos apartir da chamada
+            aluno = []
             for num in numros_escolhas:
                 #Percore todos os arquivos pegando as informaçoes 
                 arquivo = pd.read_excel(arquivos[num])
-                nome, sobre, email = Pega_informacoes_chamada(arquivo)
+                nome, sobre, email = Pega_Informacoes_chamada(arquivo)
                 #Com as informaçoes apenas crio a lista de alunos
                 if len(alunos) == 0:
                     em_tam, nm_tam, sb_tam = len(email),len(nome),len(sobre)
