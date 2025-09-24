@@ -9,13 +9,13 @@ def main():
     os.system("clear")
     G = bg.nx.Graph()
     opcoes = ["[0] BFS","[1] DFS","[2] Bellman Ford","[3] Dijkstra","[4] Sair"]
-    tipos_grafos = ["[0] Sem diresção","[1] Com direção"]
+    tipos_grafos = ["[0] Sem diresção","[1] Com direção","[2] Sair"]
     print("--------------------------------------------")
     for o in tipos_grafos:
         print(o)
     qual_tipo = int(input("Como sera o seu grafo COM ou SEM direção:"))
-    if qual_tipo <= len(tipos_grafos)-1:
-        print("--------------------------------------------")
+    print("--------------------------------------------")
+    if qual_tipo < len(tipos_grafos)-1:
         vertices,arestas = [], {} 
         qual = input("Criar Grafo:\np = padrao\ns = sim\nn = nao\nQual vai escolher: ")
         if qual == "s" or qual == "S":
@@ -38,10 +38,9 @@ def main():
         else:
             tam = int(input("Digite a quantidade de nodes: "))
             quant = int(input("Digite a quantidade maxima de edges por nodes: "))
-            print("--------------------------------------------")
             #Cria os vetices e as arestas
             vertices, arestas = bg.Gera_Vertices_E_Arestas_Para_Um_Grafo_Qualquer(tam,quant)
-        print(vertices,"\n",arestas)
+        print("--------------------------------------------")
         match qual_tipo:
             case 0:
                 bg.Cria_Grafo_Sem_Direcao(G,vertices, arestas)
@@ -81,6 +80,8 @@ def main():
             print("--------------------------------------------")
         else:
             print("Numero de escolha invalido!!!")
+    elif qual_tipo == len(tipos_grafos) -1:
+        return False
     else:
         print("Numero de escolha invalido!!!")
     input("precione enter para continuar")
