@@ -3,19 +3,20 @@ import matplotlib.pyplot as plt
 import random
 
 #Funçao que faz a animação das trocas de cores
-def desenha(G:nx.Graph,pos:dict,plt:plt.figure,ax:plt.axes):
+def desenha(G:nx.Graph,pos:dict,plt:plt.figure,ax:plt.axes,seleciona:bool=False):
         ax.clear()
         # Converte dicionário de cores em lista ordenada pelos nós
         cores_nodes = [G.nodes[u]["cor"] for u in G.nodes]
         cores_edge = [G.edges[u]["cor"] for u in G.edges]
         labels = nx.get_edge_attributes(G, "peso")
-        nx.draw(G, pos, with_labels=False, node_size=600, node_color=cores_nodes,
+        nx.draw(G, pos, with_labels=seleciona, node_size=600, node_color=cores_nodes,
                 edge_color=cores_edge, font_size=8,connectionstyle='arc3,rad=0.1', ax=ax)
         nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
         labels = {n: G.nodes[n]["valor"] for n in G.nodes}
-        nx.draw_networkx_labels(G, pos, labels=labels, font_color="black")
+        if(not seleciona):
+           nx.draw_networkx_labels(G, pos, labels=labels, font_color="black")
         plt.draw()
-        plt.pause(0.5)  # controla a velocidade da animação
+        plt.pause(2)  # controla a velocidade da animação
 
 
 #----Basico para as aresas e vertices-----

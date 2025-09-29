@@ -14,7 +14,7 @@ def BFS(G:nx.Graph, s, pos):
     # Marca nó inicial
     G.nodes[s]["cor"] = "red"
     Qfila.append(s)
-    bg.desenha(G,pos,plt,ax)
+    bg.desenha(G,pos,plt,ax,True)
     # Loop da BFS
     while Qfila:
         u = Qfila[0]
@@ -25,11 +25,11 @@ def BFS(G:nx.Graph, s, pos):
                 G.nodes[v]["cor"] = "red"
                 G.nodes[v]["caminho"] = u
                 Qfila.append(v)
-                bg.desenha(G,pos,plt,ax)
+                bg.desenha(G,pos,plt,ax,True)
             G.edges[edges]["cor"] = "black" #Muda a cor das arestas que ja foram visitadas
         Qfila.pop(0)
         G.nodes[u]["cor"] = "black"
-        bg.desenha(G,pos,plt,ax)
+        bg.desenha(G,pos,plt,ax,True)
         
     plt.ioff()
     plt.show(block=False)
