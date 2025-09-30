@@ -49,7 +49,7 @@ def main():
                 bg.Cria_Grafo_Com_Direcao(G,vertices, arestas)
             case _:
                 bg.Cria_Grafo_Sem_Direcao(G,vertices, arestas)
-        pos = bg.nx.random_layout(G, k=10, seed=bg.Cria_seed())
+        pos = bg.nx.spring_layout(G,k=20, seed=bg.Cria_seed())
 
         print("Grafo ",tipos_grafos[qual_tipo]," foi criado!!!")
         print("--------------------------------------------")
