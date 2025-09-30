@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+import time
 
 #Funçao que faz a animação das trocas de cores
 def desenha(G:nx.Graph,pos:dict,plt:plt.figure,ax:plt.axes,seleciona:bool=False):
@@ -18,6 +19,16 @@ def desenha(G:nx.Graph,pos:dict,plt:plt.figure,ax:plt.axes,seleciona:bool=False)
         plt.draw()
         plt.pause(2)  # controla a velocidade da animação
 
+#Cria minhas seeds
+def Cria_seed(deslocamento:int=32):
+    segundos = int(time.time())
+    nano = int(time.time_ns())
+    seed1 = str(segundos ^ (nano >> deslocamento))
+    print(seed1)
+    seed2 = str(nano ^ (segundos >> deslocamento))
+    print(seed2)
+    print(int(seed1+seed2) % (2**32))
+    return int(seed1+seed2) % (2**32)
 
 #----Basico para as aresas e vertices-----
 #Funçao que gera pesos para as arestas
@@ -94,4 +105,3 @@ def Gera_Vertices_E_Arestas_Para_Um_Grafo_Qualquer(tam:int,quant:int):
     vertices = [i for i in range(tam)]
     arestas = {a: Gera_arestas(a, vertices, qtd=quant) for a in vertices}
     return vertices,arestas
-
