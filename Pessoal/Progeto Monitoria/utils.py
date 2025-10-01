@@ -45,12 +45,15 @@ def Alunos_Repetidos(alunos: list[Aluno]):
 
 #Vai colocar as notas finais ja calculadas no arquivo e me retornar o arquivo ja modificado
 def Coloca_Notas(alunos: list[Aluno],arquivo: pd.DataFrame):
+    # Converter a coluna 'Nota Final' para float antes de atribuir valores
+    arquivo['Nota Final'] = arquivo['Nota Final'].astype(float)
+    
     for i,aluno in enumerate(alunos):
         arquivo.loc[i, 'Nota Final'] = round(aluno.nota_final_atividade, 2)
     return arquivo
 
 #Vai calcular a nota final de cada aluno e adicionar essa nota no aluno
-def Calcula_Nota_Final(aluno: Aluno,nota_corte: float,qnt_execicios: int):
+def Calcula_Nota_Final(aluno: Aluno,nota_corte: float,qnt_execicios: int,nota_baixa:bool):
     quantas_notas = 0
     for nota in aluno.notas_exercicios:
         if nota >= nota_corte:
@@ -58,16 +61,19 @@ def Calcula_Nota_Final(aluno: Aluno,nota_corte: float,qnt_execicios: int):
     if quantas_notas >= qnt_execicios:
         aluno.set_nota_final_exercicios(10.0)
     else:
-        aluno.set_nota_final_exercicios(aluno.nota_atividade)
+        if nota_baixa:
+            aluno.set_nota_final_exercicios(aluno.nota_atividade)
+        else:
+            aluno.set_nota_final_exercicios(3.3333*quantas_notas)
 
 #Vai adicionar as notas de cada exercicio q o aluno fez
 def Adiciona_notas(i: int,arquivo: pd.DataFrame,ate: int,aluno: Aluno):
     primeira_linha = arquivo.iloc[i]
     for j in range(8,ate):
-        if str(primeira_linha[j]) == "-":
-            aluno.set_notas_exercicios(float(str(primeira_linha[j]).replace("-", "0")))
+        if str(primeira_linha.iloc[j]) == "-":
+            aluno.set_notas_exercicios(float(str(primeira_linha.iloc[j]).replace("-", "0")))
         else:
-            aluno.set_notas_exercicios(float(str(primeira_linha[j]).replace(",", ".")))
+            aluno.set_notas_exercicios(float(str(primeira_linha.iloc[j]).replace(",", ".")))
 
 #Vai pegar as informaçoes da tabela de alunos, mais pegando 
 def Pega_informacoes_atividades(arquivo: pd.DataFrame):
@@ -114,7 +120,6 @@ def Numeros_Validos(arquivos: list[str]):
     return numros_escolhas     
 
 
-#Uma funçao que vai gerar o arquivo contendo a media das notas finais de cada atividade
 def gerar_arquivo_medias(alunos: list[Aluno], nome_arquivo: str):
     # Determina quantas colunas NF precisamos (máximo de notas)
     max_notas = max(len(a.notas_para_media_final) for a in alunos) if alunos else 0
@@ -122,7 +127,6 @@ def gerar_arquivo_medias(alunos: list[Aluno], nome_arquivo: str):
     dados = {
         "Nome Completo": [f"{a.primeiro_nome} {a.segundo_nome}" for a in alunos],
         "Endereço de email": [a.email for a in alunos],
-        # Para cada posição de nota, cria uma coluna NF
         **{f"NF{i+1}": [a.notas_para_media_final[i] if i < len(a.notas_para_media_final) else "0" for a in alunos] 
            for i in range(max_notas)},
         "Média Final": [round(a.calcular_media(max_notas), 2) for a in alunos],
@@ -132,8 +136,22 @@ def gerar_arquivo_medias(alunos: list[Aluno], nome_arquivo: str):
     df = pd.DataFrame(dados)
     df = df.sort_values(by="Nome Completo")
     
-    df.to_excel(nome_arquivo + ".xlsx", index=False)
-    print(f"✅ Arquivo '{nome_arquivo}.xlsx' gerado com {max_notas} colunas de notas (ordenado por nome).")
+    # Função para colorir linhas com média baixa de vermelho
+    def colorir_linhas_vermelhas(row):
+        media = row['Média Final']
+        if media < 5:  # Altere o valor conforme sua regra
+            return ['background-color: #FFB6C1'] * len(row)  # Vermelho claro para reprovados
+        elif media < 7:
+            return ['background-color: #FFFACD'] * len(row)  # Amarelo para recuperação
+        else:
+            return ['background-color: #90EE90'] * len(row)  # Verde para aprovados
+    
+    # Aplicar o estilo
+    df_estilizado = df.style.apply(colorir_linhas_vermelhas, axis=1)
+    
+    # Exportar para Excel
+    df_estilizado.to_excel(nome_arquivo + ".xlsx", index=False)
+    print(f"✅ Arquivo '{nome_arquivo}.xlsx' gerado com {max_notas} colunas de notas (linhas coloridas por média).")
 
 #Vai ficar limpando a tela
 def limpa_tela():

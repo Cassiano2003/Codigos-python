@@ -47,17 +47,19 @@ def menu(alunos:list[Aluno]):
                 arquivo = pd.read_excel(arquivos[num])
 
                 #Gera a coluna final
+                numero_colunas = len(arquivo.iloc[0])
 
                 if 'Nota Final'in arquivo.columns:
                     print("A coluna Nota final ja existe.")
+                    numero_colunas = numero_colunas - 1
                 else:
-                    numero_colunas = len(arquivo.iloc[0])
                     arquivo.insert(numero_colunas,'Nota Final',0)
 
                 #Gero o vetor da Classe Alunos
-
                 email,nome,sobre,nota_final,nota_atividade = Pega_informacoes_atividades(arquivo=arquivo)
-                ques = int(input("Quantas questoes tem: "))
+                #ques = int(input("Quantas questoes tem: "))
+                ques = numero_colunas - 8
+                print(ques)
                 for i in range(len(arquivo)):
                     aluno = Aluno(email[i],nome[i],sobre[i])
                     aluno.set_nota_atividade(nota_atividade[i])
@@ -65,11 +67,15 @@ def menu(alunos:list[Aluno]):
                     alunos.append(aluno)
 
                 #Vai gerar as notas de cada aluno
-
-                nota_corte = float(input("Digite a nota de corte: "))
+                #nota_corte = float(input("Digite a nota de corte: "))
+                str_nota = arquivo.iloc[0,8]
+                str_nota_modificada = str_nota.replace("Q. 1 /","")
+                nota_corte = float(str_nota_modificada.replace(",","."))
+                print(nota_corte)
                 qnt_para_10 = int(input("Quantas notas cheias para ir com 10: "))
+                nota_baixa = True if qnt_para_10 == ques else False
                 for aluno in alunos:
-                    Calcula_Nota_Final(aluno,nota_corte,qnt_para_10)
+                    Calcula_Nota_Final(aluno,nota_corte,qnt_para_10,nota_baixa)
 
                 alunos.pop(len(alunos)-1)
                 #Coloca as notas de cada aluno na planilha
