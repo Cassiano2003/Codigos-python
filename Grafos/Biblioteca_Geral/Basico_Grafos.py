@@ -30,6 +30,7 @@ def Cria_seed(deslocamento:int=32):
     print(int(seed1+seed2) % (2**32))
     return int(seed1+seed2) % (2**32)
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> origin/main
@@ -53,6 +54,28 @@ def Cor_Caminho(G,negativo:bool=False):
             G.edges[e]["peso"] = Gera_pesos()
     return G
 
+=======
+
+#----Basico para as aresas e vertices-----
+#Funçao que gera pesos para as arestas
+def Gera_pesos() -> int:
+    return random.randint(1, 10)
+#Funçao que gera os pesos para as arestas e as cores para os nodes e as arestas
+def Cor_Caminho(G,negativo:bool=False):
+    for v in G.nodes:
+        G.nodes[v]["cor"] = "blue"
+        G.nodes[v]["caminho"] = None
+        G.nodes[v]["valor"] = float('inf')
+    for e in G.edges:
+        G.edges[e]["cor"] = "gray"
+        if negativo:
+            G.edges[e]["peso"] = -Gera_pesos()
+            negativo = False if random.random() < 0.4 else True
+        else:
+            G.edges[e]["peso"] = Gera_pesos()
+    return G
+
+>>>>>>> origin/main
     
 #----Criaçao de Grafo qualquer sem direção-----
 #Funçao q usa a lista e o dicionario para criar o grafo
