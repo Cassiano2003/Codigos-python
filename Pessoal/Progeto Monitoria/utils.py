@@ -1,135 +1,159 @@
 import os
-import glob
 import pandas as pd
 from models import Aluno
 
-# ===================== Entrada Segura =====================
-def pedir_inteiro(msg: str, minimo=0, maximo=None) -> int:
-    while True:
-        try:
-            valor = int(input(msg))
-            if maximo is not None and not (minimo <= valor <= maximo):
-                raise ValueError
-            return valor
-        except ValueError:
-            print("⚠️ Entrada inválida, tente novamente.")
+#Vai buscar as menores notas no meu vetor de alunos
+def Menores_Notas(repetidos: list[str],lista_alunos : list[Aluno]):
+    menores = []
+    for emais in repetidos:
+        maior = -1
+        local_maior = -1
+        locais = Busca_Posicoes(emais,lista_alunos)
+        for local in locais:
+            if lista_alunos[local].nota_atividade > maior:
+                maior = lista_alunos[local].nota_atividade
+                if local_maior != -1:
+                    menores.append(local_maior)
+                local_maior = local
+            else:
+                menores.append(local)
+    return menores
 
-def pedir_float(msg: str) -> float:
-    while True:
-        try:
-            return float(input(msg).replace(",", "."))
-        except ValueError:
-            print("⚠️ Digite um número válido.")
+#Vai me retornar as posicoes em que os alunos se repetem no vetor da quele arquivo
+def Busca_Posicoes(email: str,alunos: list[Aluno]):
+    posicoes = []
+    for i,aluno in enumerate(alunos):
+        if aluno.email == email:
+            posicoes.append(i)
+    return posicoes
 
-# ===================== Manipulação de Arquivos =====================
-def listar_planilhas() -> list[str]:
-    arquivos = glob.glob("*.xlsx")
-    for i, arq in enumerate(arquivos):
-        print(f"[{i}] {arq}")
-    return arquivos
+#Vai me dar a contagen de quantas vezes aquele email ja se repetio no meu vetor
+#Apenas uma contagen de de quantas veses um aluno enviou as respostas
+def Alunos_Repetidos(alunos: list[Aluno]):
+    contagem = {}
+    repetidos = []
+    for aluno in alunos:
+        if aluno.email in contagem:
+            contagem[aluno.email] += 1
+        else:
+            contagem[aluno.email] = 1
+    
+    for email, cont in contagem.items():
+        if cont > 1:
+            repetidos.append(email)
+    return repetidos
 
-def escolher_arquivos(arquivos: list[str]) -> list[int]:
-    while True:
-        try:
-            escolhas = [int(x) for x in input("Digite os números desejados separados por espaço: ").split()]
-            if all(0 <= e < len(arquivos) for e in escolhas):
-                return escolhas
-        except ValueError:
-            pass
-        print("⚠️ Números inválidos, tente novamente.")
+#Vai colocar as notas finais ja calculadas no arquivo e me retornar o arquivo ja modificado
+def Coloca_Notas(alunos: list[Aluno],arquivo: pd.DataFrame):
+    # Converter a coluna 'Nota Final' para float antes de atribuir valores
+    arquivo['Nota Final'] = arquivo['Nota Final'].astype(float)
+    
+    for i,aluno in enumerate(alunos):
+        arquivo.loc[i, 'Nota Final'] = round(aluno.nota_final_atividade, 2)
+    return arquivo
 
-# ===================== Leitura e Criação de Alunos =====================
-def carregar_alunos_de_excel(caminho: str, questoes: int) -> list[Aluno]:
-    df = pd.read_excel(caminho)
-    emails = df["Endereço de email"]
-    nomes = df["Nome"]
-    sobrenomes = df["Sobrenome"]
+#Vai calcular a nota final de cada aluno e adicionar essa nota no aluno
+def Calcula_Nota_Final(aluno: Aluno,nota_corte: float,qnt_execicios: int,nota_baixa:bool):
+    quantas_notas = 0
+    for nota in aluno.notas_exercicios:
+        if nota >= nota_corte:
+            quantas_notas += 1
+    if quantas_notas >= qnt_execicios:
+        aluno.set_nota_final_exercicios(10.0)
+    else:
+        if nota_baixa:
+            aluno.set_nota_final_exercicios(aluno.nota_atividade)
+        else:
+            aluno.set_nota_final_exercicios(3.3333*quantas_notas)
 
-    if questoes != 0:
-        atividades = pd.to_numeric(
-            df["Avaliar/10,0"].astype(str).str.replace(",", "."),
-            errors="coerce"
-        )
+#Vai adicionar as notas de cada exercicio q o aluno fez
+def Adiciona_notas(i: int,arquivo: pd.DataFrame,ate: int,aluno: Aluno):
+    primeira_linha = arquivo.iloc[i]
+    for j in range(8,ate):
+        if str(primeira_linha.iloc[j]) == "-":
+            aluno.set_notas_exercicios(float(str(primeira_linha.iloc[j]).replace("-", "0")))
+        else:
+            aluno.set_notas_exercicios(float(str(primeira_linha.iloc[j]).replace(",", ".")))
 
-    alunos = []
-    for i in range(len(df)):
-        aluno = Aluno(emails[i], nomes[i], sobrenomes[i])
-        if questoes != 0:
-            aluno.nota_atividade = atividades[i]
-        for j in range(8, 8 + questoes):
-            nota = pd.to_numeric(str(df.iloc[i, j]).replace(",", "."), errors="coerce")
-            if pd.notna(nota):
-                aluno.adicionar_nota_exercicio(float(nota))
-        alunos.append(aluno)
-    return alunos, df
+#Vai pegar as informaçoes da tabela de alunos, mais pegando 
+def Pega_informacoes_atividades(arquivo: pd.DataFrame):
+    nomes = arquivo['Nome']
+    sobre = arquivo['Sobrenome']
+    email = arquivo['Endereço de email']
+    nota_final = arquivo['Nota Final']
+    nota_atividade = [float((ati).replace(",", ".")) for ati in arquivo['Avaliar/10,0']]
+    return email,nomes,sobre,nota_final,nota_atividade
 
-def calcular_nota_final(aluno: Aluno, nota_corte: float):
-    acertos = sum(1 for n in aluno.notas_exercicios if n >= nota_corte)
-    aluno.nota_final = 10.0 if acertos >= 3 else acertos * 3.3333
+#Vai criar uma lista de alunos baseado na lista presença
+def Pega_Informacoes_chamada(arquivo: pd.DataFrame):
+    nomes = arquivo['Nome']
+    sobre = arquivo['Sobrenome']
+    email = arquivo['Endereço de email']
+    return nomes, sobre, email
 
-def salvar_planilha_com_notas(df: pd.DataFrame, alunos: list[Aluno], caminho: str):
-    # Se não existir a coluna "Nota Final", cria
-    if "Nota Final" not in df.columns:
-        df.insert(len(df.columns), "Nota Final", 0.0)
+#Vai apenas buscas o aluno na lista de alunos criada apartir da lista de presenças
+def Busca_Aluno(email: str,list_alunos: list[Aluno]):
+    for i,aluno in enumerate(list_alunos):
+        if aluno.email == email:
+            return i
+    return -1
 
-    # Atualiza/insere a nota final de cada aluno
-    for i, aluno in enumerate(alunos):
-        df.loc[i, "Nota Final"] = round(aluno.nota_final, 2)
-
-    # 🔑 Mantém apenas a maior nota por aluno
-    # Ordena pela maior Nota Final primeiro
-    df = df.sort_values("Avaliar/10,0", ascending=False)
-
-    # Remove duplicatas com base em Emails (pode trocar por "Endereço de email" se for mais seguro)
-    df = df.drop_duplicates(subset=["Endereço de email"], keep="first")
-
-    # Salva a planilha já atualizada e sem duplicatas
-    df.to_excel(caminho, index=False)
-    print(f"✅ Planilha '{caminho}' atualizada (duplicatas removidas e maior nota mantida).")
+#Vai apenas imprimir os objetos alunos
+def Imprime_Alunos(alunos: list[Aluno]):
+    for aluno in alunos:
+        print(aluno)
 
 
-def adicionar_notas_finais_em_alunos(alunos: list[Aluno]):
-    arquivos = listar_planilhas()
-    if not arquivos:
-        print("Nenhum arquivo .xlsx encontrado.")
-        return
-
-    indices = escolher_arquivos(arquivos)
-
-    for idx in indices:
-        caminho = arquivos[idx]
-        print("\n" + "=" * 60)
-        print(f"📂 Lendo notas finais do arquivo: {caminho}")
-        print("=" * 60 + "\n")
-
-        df = pd.read_excel(caminho)
-        if "Nota Final" not in df.columns:
-            print(f"⚠️ O arquivo {caminho} não contém a coluna 'Nota Final'. Pulando.")
-            continue
-
-        # 🔑 Mantém apenas a maior nota por aluno
-        df = df.sort_values("Nota Final", ascending=False)
-        df = df.drop_duplicates(subset=["Endereço de email"], keep="first")
-
-        emails = df["Endereço de email"]
-        notas_finais = pd.to_numeric(df["Nota Final"], errors="coerce")
-
-        for email, nota in zip(emails, notas_finais):
-            if pd.isna(nota):
-                continue
-            for aluno in alunos:
-                if aluno.email == email:
-                    aluno.adicionar_nota_final(float(nota))
-                    break
+#Apenas para verificar se um numero é valido ou nao como escolha
+def Numeros_Validos(arquivos: list[str]):
+    for i,ar in enumerate(arquivos):
+        print("[",i,"]",ar)
+    print("------"*10)
+    minhas_escolhas = input("Digite os numeros desejados separados por espaço: ")
+    numros_escolhas = [int(es) for es in minhas_escolhas.split()]
+    print("------"*10)
+    for num in numros_escolhas:
+        if num > len(arquivos)-1:
+            print("Numeros invalidos!!!")
+            return Numeros_Validos(arquivos)
+    print("Numeros validos!!!")
+    return numros_escolhas     
 
 
 def gerar_arquivo_medias(alunos: list[Aluno], nome_arquivo: str):
-    # Calcula a média considerando todas as notas finais já filtradas (maior nota por arquivo)
+    # Determina quantas colunas NF precisamos (máximo de notas)
+    max_notas = max(len(a.notas_para_media_final) for a in alunos) if alunos else 0
+    
     dados = {
-        "Sobrenome": [a.segundo_nome for a in alunos],
-        "Nome": [a.primeiro_nome for a in alunos],
+        "Nome Completo": [f"{a.primeiro_nome} {a.segundo_nome}" for a in alunos],
         "Endereço de email": [a.email for a in alunos],
-        "Média Final": [round(a.calcular_media(), 2) for a in alunos],
+        **{f"NF{i+1}": [a.notas_para_media_final[i] if i < len(a.notas_para_media_final) else "0" for a in alunos] 
+           for i in range(max_notas)},
+        "Média Final": [round(a.calcular_media(max_notas), 2) for a in alunos],
     }
-    pd.DataFrame(dados).to_excel(nome_arquivo + ".xlsx", index=False)
-    print(f"✅ Arquivo '{nome_arquivo}.xlsx' gerado com as médias finais.")
+    
+    # Cria DataFrame e ordena por nome
+    df = pd.DataFrame(dados)
+    df = df.sort_values(by="Nome Completo")
+    
+    # Função para colorir linhas com média baixa de vermelho
+    def colorir_linhas_vermelhas(row):
+        media = row['Média Final']
+        if media < 5:  # Altere o valor conforme sua regra
+            return ['background-color: #FFB6C1'] * len(row)  # Vermelho claro para reprovados
+        elif media < 7:
+            return ['background-color: #FFFACD'] * len(row)  # Amarelo para recuperação
+        else:
+            return ['background-color: #90EE90'] * len(row)  # Verde para aprovados
+    
+    # Aplicar o estilo
+    df_estilizado = df.style.apply(colorir_linhas_vermelhas, axis=1)
+    
+    # Exportar para Excel
+    df_estilizado.to_excel(nome_arquivo + ".xlsx", index=False)
+    print(f"✅ Arquivo '{nome_arquivo}.xlsx' gerado com {max_notas} colunas de notas (linhas coloridas por média).")
+
+#Vai ficar limpando a tela
+def limpa_tela():
+    os.system("clear")
+

@@ -35,7 +35,7 @@ class Aluno:
     def __str__(self):
         return f"{self.Primeiro_nome} {self.Segundo_nome} e suas notas é {self.Nota_Exercicios},notas de atividades {self.Nota_Atividade} e sua nota final é {self.Nota}\nAs notas finais{self.Nota_Final} e a media desse aluno é {self.Media_Final}"
 
-def Menores_Notas(repetidos,alunos,arquivo):
+def Menores_Notas(repetidos,alunos):
     menores = []
     for emais in repetidos:
         maior = -1
@@ -73,20 +73,20 @@ def Alunos_Repetidos(alunos):
             repetidos.append(email)
     return repetidos
 
-def Coloca_Notas(alunos,arquivo):
+def Coloca_Notas(alunos:list[Aluno],arquivo):
     for i,aluno in enumerate(alunos):
         arquivo.loc[i, 'Nota Final'] = round(aluno.Nota, 2)
     return arquivo
 
-def Calcula_Nota_Final(aluno,nota_corte):
+def Calcula_Nota_Final(aluno:Aluno,nota_corte:float,quantos_exercicios:int):
     quantas_notas = 0
     for nota in aluno.Nota_Exercicios:
         if nota >= nota_corte:
             quantas_notas += 1
-    if quantas_notas >= 3:
+    if quantas_notas >= quantos_exercicios:
         aluno.Adiciona_Nota(10.0)
     else:
-        aluno.Adiciona_Nota(quantas_notas*(3.333333))
+        aluno.Adiciona_Nota(aluno.Nota_Exercicios)
 
 def Adiciona_notas(i,arquivo,ate,aluno):
     primeira_linha = arquivo.iloc[i]
@@ -190,15 +190,16 @@ def menu(alunos):
                 #Vai gerar as notas de cada aluno
 
                 nota_corte = float(input("Digite a nota de corte: "))
+                quantos_exercicios = int(input("Quantos execicios o aluno deve fazer para ir com 10: "))
                 for aluno in alunos:
-                    Calcula_Nota_Final(aluno,nota_corte)
+                    Calcula_Nota_Final(aluno,nota_corte,quantos_exercicios)
 
                 alunos.pop(len(alunos)-1)
                 #Coloca as notas de cada aluno na planilha
                 
                 arquivo = Coloca_Notas(alunos,arquivo)
                 repetidos = Alunos_Repetidos(alunos)
-                menores = Menores_Notas(repetidos,alunos,arquivo)
+                menores = Menores_Notas(repetidos,alunos)
                 arquivo = arquivo.drop(menores)
                 arquivo = arquivo.reset_index(drop=True)
                 #Imprime_Alunos(alunos)

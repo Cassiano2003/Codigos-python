@@ -1,4 +1,5 @@
-Grafos/v5_oag_author.json
-Grafos/v5_oag_publication_1.json
-Grafos/dblp-2025-08-01.xml
+Grafos/Testes/*.json
+Grafos/Testes/*.xml
+Grafos/Testes/*.txt
 Pessoal/Progeto Monitoria/*.xlsx
+Pessoal/Progeto Monitoria/teste/*.xlsx
