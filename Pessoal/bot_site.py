@@ -57,11 +57,17 @@ historico = []
 
 wait = WebDriverWait(driver, 10)
 
-# Fala opções
+'''# Fala opções
 opcoes = ["Sim.","Não.","Fase.","Voltar.","Confirmar.","Sair.","Repetir."]
 falar("Qual opção?")
 for o in opcoes:
-    falar(o)
+    falar(o)'''
+
+def Vai_tudo_sim(botao_priximo):
+    clicar_elemento(botao_priximo)
+    falar("Indo para a proxima frase.")
+    sleep(10)
+
 
 while True:
     try:
@@ -76,17 +82,18 @@ while True:
         print(f"Pergunta: {pergunta}")
         falar(pergunta)
 
-        # Espera a resposta do usuário
+        '''# Espera a resposta do usuário
         resposta = ouvir_resposta()
         while resposta is None:
             falar("Não entendi, pode repetir?")
             resposta = ouvir_resposta()
 
-        resposta = resposta.lower().strip()
+        resposta = resposta.lower().strip()'''
+        radio = driver.find_element(By.CSS_SELECTOR, 'input[type="radio"][value="0"]')
+        Vai_tudo_sim(botao_priximo)
         
-        # Processa a resposta
+        '''''# Processa a resposta
         if resposta.startswith("si"):  # Sim
-            radio = driver.find_element(By.CSS_SELECTOR, 'input[type="radio"][value="0"]')
             clicar_elemento(radio)
             clicar_elemento(botao_priximo)
             falar("Marcado sim e indo para a proxima.")
@@ -94,8 +101,8 @@ while True:
             
         elif resposta.startswith("n"):  # Não
             radio = driver.find_element(By.CSS_SELECTOR, 'input[type="radio"][value="1"]')
-            clicar_elemento(botao_priximo)
             clicar_elemento(radio)
+            clicar_elemento(botao_priximo)
             falar("Marcado não e indo para a proxima.")
             historico.append({'pergunta': pergunta, 'resposta': 'Não'})
             
@@ -122,7 +129,7 @@ while True:
         else:
             falar("Não entendi sua resposta.")
 
-        sleep(5)  # Pequena pausa antes da próxima iteração
+        sleep(5)  # Pequena pausa antes da próxima iteração'''
 
     except TimeoutException:
         falar("Tempo esgotado para carregar elementos, tentando novamente...")
@@ -132,5 +139,4 @@ while True:
         falar("A página recarregou, aguardando elementos...")
         sleep(1)
 
-#O9y1h5xQ
-
+# O9y1h5xQ
