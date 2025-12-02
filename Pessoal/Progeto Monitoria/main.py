@@ -77,7 +77,6 @@ def menu(alunos:list[Aluno]):
                 for aluno in alunos:
                     Calcula_Nota_Final(aluno,nota_corte,qnt_para_10,nota_baixa)
 
-                alunos.pop(len(alunos)-1)
                 #Coloca as notas de cada aluno na planilha
                 arquivo = Coloca_Notas(alunos,arquivo)
                 #Vai retornar os alunos que fizeram mais de um envio da atividade
@@ -95,28 +94,33 @@ def menu(alunos:list[Aluno]):
             for num in numros_escolhas:
                 #Vai em cada arquivo pegando as informaçoes
                 arquivo = pd.read_excel(arquivos[num])
+                print("------"*10)
+                print("Arquivo selecionado ",arquivos[num])
+                print("------"*10)
                 email,nome,sobre,nota_final,nota_atividade = Pega_informacoes_atividades(arquivo=arquivo)
                 #Se a lista esta vazia entao devemos criar ela com base na chamada, para nao termos alunos faltando
                 if len(alunos) == 0:
                     print("Primeiro crie a lista de dados com a os nomes, sobrenome e emails dos alunos.")
                     break
-                elif len(alunos) > 0:
+                else:
                     for i,em in enumerate(email):#Vai andar em cada email
-                        lugar = Busca_Aluno(em,alunos) #Pegar a posiçao do aluno no vetor apartir do email
+                        lugar = Busca_Aluno(em,nome[i],sobre[i],alunos) #Pegar a posiçao do aluno no vetor apartir do email
                         nova_nota = float(str(nota_final[i]).replace(",", ".")) #Pega a Nota Final
                         if lugar != -1: #O aluno tem que existir
+                            alunos[lugar].fez_atividade = True #Marca que o aluno fez a atividade
                             alunos[lugar].set_notas_para_media_final(nova_nota)#Adiciona a nota, no vetor de notas para a media final, para asssim poder calcular a media final
                         else:
-                            print(f"Esse aluno nao existe: {em}")
+                            print(f"Esse aluno nao existe: {em} {nome[i]} {sobre[i]}")
             #Vai calcular a media final para todos os alunos 
             div = len(numros_escolhas)#Quantas notas sao no total
             for aluno in alunos:
+                if not aluno.fez_atividade:
+                    aluno.set_notas_para_media_final(0.0)
+                else:
+                    aluno.fez_atividade = False
                 aluno.calcular_media(div)
-            #Vai retirar o ultimo pois o ultimo é arquele media do arquivo e eu nao quero ele
-            alunos.pop(len(alunos)-1)
             #Vai perguntar qual sera o nome do arquivo que vai conter as medias finais
             nome_arquivo = input("Digite o nome do arquivo: ")
-            nome_arquivo = nome_arquivo+".xlsx"
             #E por fim chama a funçao para gerar o arquivo de medias finais de todos os alunos
             gerar_arquivo_medias(alunos,nome_arquivo)
         case 2:# É para fazer a criaçao da lista de alunos apartir da chamada

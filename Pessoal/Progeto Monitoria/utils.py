@@ -64,7 +64,7 @@ def Calcula_Nota_Final(aluno: Aluno,nota_corte: float,qnt_execicios: int,nota_ba
         if nota_baixa:
             aluno.set_nota_final_exercicios(aluno.nota_atividade)
         else:
-            aluno.set_nota_final_exercicios(3.3333*quantas_notas)
+            aluno.set_nota_final_exercicios((10/qnt_execicios)*quantas_notas)
 
 #Vai adicionar as notas de cada exercicio q o aluno fez
 def Adiciona_notas(i: int,arquivo: pd.DataFrame,ate: int,aluno: Aluno):
@@ -92,9 +92,10 @@ def Pega_Informacoes_chamada(arquivo: pd.DataFrame):
     return nomes, sobre, email
 
 #Vai apenas buscas o aluno na lista de alunos criada apartir da lista de presenças
-def Busca_Aluno(email: str,list_alunos: list[Aluno]):
+def Busca_Aluno(emai : str,nome: str,sobre : str,list_alunos: list[Aluno]):
     for i,aluno in enumerate(list_alunos):
-        if aluno.email == email:
+        nome_aluno = f"{aluno.primeiro_nome} {aluno.segundo_nome}"
+        if (aluno.email == emai) or (nome_aluno == f"{nome} {sobre}") or (aluno.primeiro_nome == nome and aluno.segundo_nome == sobre):
             return i
     return -1
 
@@ -112,10 +113,10 @@ def Numeros_Validos(arquivos: list[str]):
     minhas_escolhas = input("Digite os numeros desejados separados por espaço: ")
     numros_escolhas = [int(es) for es in minhas_escolhas.split()]
     print("------"*10)
-    for num in numros_escolhas:
+    '''for num in numros_escolhas:
         if num > len(arquivos)-1:
             print("Numeros invalidos!!!")
-            return Numeros_Validos(arquivos)
+            return Numeros_Validos(arquivos)'''
     print("Numeros validos!!!")
     return numros_escolhas     
 
@@ -129,14 +130,14 @@ def gerar_arquivo_medias(alunos: list[Aluno], nome_arquivo: str):
         "Endereço de email": [a.email for a in alunos],
         **{f"NF{i+1}": [a.notas_para_media_final[i] if i < len(a.notas_para_media_final) else "0" for a in alunos] 
            for i in range(max_notas)},
-        "Média Final": [round(a.calcular_media(max_notas), 2) for a in alunos],
+        "Média Final": [round(a.nota_media, 2) for a in alunos],
     }
     
     # Cria DataFrame e ordena por nome
     df = pd.DataFrame(dados)
     df = df.sort_values(by="Nome Completo")
     
-    # Função para colorir linhas com média baixa de vermelho
+    '''# Função para colorir linhas com média baixa de vermelho
     def colorir_linhas_vermelhas(row):
         media = row['Média Final']
         if media < 5:  # Altere o valor conforme sua regra
@@ -147,10 +148,10 @@ def gerar_arquivo_medias(alunos: list[Aluno], nome_arquivo: str):
             return ['background-color: #90EE90'] * len(row)  # Verde para aprovados
     
     # Aplicar o estilo
-    df_estilizado = df.style.apply(colorir_linhas_vermelhas, axis=1)
+    df_estilizado = df.style.apply(colorir_linhas_vermelhas, axis=1)'''
     
     # Exportar para Excel
-    df_estilizado.to_excel(nome_arquivo + ".xlsx", index=False)
+    df.to_excel(nome_arquivo + ".xlsx", index=False)
     print(f"✅ Arquivo '{nome_arquivo}.xlsx' gerado com {max_notas} colunas de notas (linhas coloridas por média).")
 
 #Vai ficar limpando a tela

@@ -12,6 +12,7 @@ class Aluno:
         self.notas_exercicios = [] #Lista das notas dos exercicios
         self.notas_para_media_final = []  # Para guardar as notas finais de cada arquivo
         self.nota_media = 0
+        self.fez_atividade = False #Se o aluno fez a atividade ou nao
 
     def set_notas_exercicios(self, nota: float):
         self.notas_exercicios.append(nota)
@@ -30,8 +31,9 @@ class Aluno:
 
     def calcular_media(self,div) -> float:
         if not self.notas_para_media_final:
-            return 0.0
-        return sum(self.notas_para_media_final) / div
+            self.nota_media = 0.0
+        else:
+            self.nota_media = sum(self.notas_para_media_final) / div
 
     def __str__(self):
         return f"{self.email} | {self.primeiro_nome} {self.segundo_nome} | {self.notas_para_media_final} | {self.nota_final_atividade} | {self.nota_media}"
