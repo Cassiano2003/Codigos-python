@@ -1,92 +1,61 @@
 import glob #Uma biblioteca que me ajuda a caregar todos os arquivos (*.xlsx)
 import pandas as pd #Essa biblioteca me permite fazer a manipulaçao desses arquivos
-import os
+from funcoes import (
+    Pega_Informacoes, Busca_Aluno, Imprime_Alunos, gerar_arquivo_EAD, limpa_tela,
+    Opcaes_Menu, Escolha_Arquivo,Coloca_Notas,Gera_lista_sem_duplicados)
+from Objetos import Aluno
 
-class Aluno:
-    def __init__(self, email, primeiro_nome, segundo_nome):
-        self.email = email #Minha key 
-        self.primeiro_nome = primeiro_nome #Primeiro nome do aluno
-        self.segundo_nome = segundo_nome #Segundo nome do aluno
-        self.atividades_feitas = [] #Lista das atividades feitas pelo aluno
-    
-    def adicionar_atividade(self, atividade):
-        self.atividades_feitas.append(atividade)
+def Caso_0 (escolha_arquivos : list[int], arquivos : pd.DataFrame):#Criaçao da nova tabela de notas finais no arquivo
+    if escolha_arquivos is not None:
+        for num in escolha_arquivos:
+            limpa_tela()
+            print("Arquivo selecionado ",arquivos[num])
+            print("------"*10)
+            alunos = []
+            arquivo = pd.read_excel(arquivos[num])
 
-    def __str__(self):
-        return f"{self.email} | {self.primeiro_nome} {self.segundo_nome} | {self.atividades_feitas}"
-    
-
-#Vai ficar limpando a tela
-def limpa_tela():
-    os.system("clear")
-
-def Pega_Informacoes(arquivo: pd.DataFrame):
-    nomes = arquivo['Nome']
-    sobre = arquivo['Sobrenome']
-    email = arquivo['Endereço de email']
-    try:
-        avaliacoes = arquivo['Avaliar/10,0']
-        return nomes, sobre, email, avaliacoes
-    except:
-        return nomes, sobre, email, None
-
-def Busca_Aluno(emai : str,nome: str,sobre : str,list_alunos: list[Aluno]):
-    nome_sobre = f"{nome} {sobre}"
-    for i,aluno in enumerate(list_alunos):
-        nome_aluno = f"{aluno.primeiro_nome} {aluno.segundo_nome}"
-        if (aluno.email == emai) or (nome_aluno == nome_sobre) or (aluno.primeiro_nome == nome and aluno.segundo_nome == sobre):
-            return i
-    return -1
-
-#Vai apenas imprimir os objetos alunos
-def Imprime_Alunos(alunos: list[Aluno]):
-    for aluno in alunos:
-        print(aluno)
-
-def gerar_arquivo(alunos: list[Aluno]):
-    nome_arquivo = input("Digite o nome do arquivo a ser gerado (sem extensão): ")
-    # Determina o número máximo de atividades entre todos os alunos
-    max_atividades = max(len(aluno.atividades_feitas) for aluno in alunos)
-    
-    # Prepara os dados para o DataFrame
-    dados = {
-        "Nome Completo": [],
-        "Endereço de email": [],
-        **{f"EAD{i+1}": [] for i in range(max_atividades)}
-    }
-    
-    # Preenche os dados de cada aluno
-    for aluno in alunos:
-        dados["Nome Completo"].append(f"{aluno.primeiro_nome} {aluno.segundo_nome}")
-        dados["Endereço de email"].append(aluno.email)
-        
-        # Preenche as atividades do aluno
-        for i in range(max_atividades):
-            if i < len(aluno.atividades_feitas):
-                dados[f"EAD{i+1}"].append(aluno.atividades_feitas[i])
+            #Gera a coluna final
+            lista_temp = arquivo.columns.tolist()
+            numero_colunas = len(lista_temp)
+            if 'Nota Final' in arquivo.columns:
+                print("A coluna Nota final ja existe.")
+                numero_colunas = numero_colunas - 1
             else:
-                dados[f"EAD{i+1}"].append("")  # String vazia em vez de espaço
-    
-    # Cria DataFrame e ordena por nome
-    df = pd.DataFrame(dados)
-    df = df.sort_values(by="Nome Completo")
+                arquivo.insert(numero_colunas,'Nota Final',0)
 
-    # Exportar para Excel
-    df.to_excel(nome_arquivo + ".xlsx", index=False)
-    print(f"✅ Arquivo '{nome_arquivo}.xlsx' gerado com {max_atividades} colunas de notas (linhas coloridas por média).")
+            #Gero o vetor da Classe Alunos
+            informacoes_dis = Pega_Informacoes(arquivo)
+            #ques = int(input("Quantas questoes tem: "))
+            ques = numero_colunas - 8
+
+            str_nota_modificada = lista_temp[8].replace("Q. 1 /","")
+            nota_corte = float(str_nota_modificada.replace(",","."))
+            print(nota_corte)
+            qnt_para_10 = int(input("Quantas notas cheias para ir com 10: "))
+            nota_total = True if qnt_para_10 == ques else False
+
+            for chave, lista in informacoes_dis.items():
+                aluno = Aluno(email[i],nome[i],sobre[i])
+                aluno.set_quantos_exes_feitos(int(nota_atividade[i]/nota_corte))
+                if not nota_total:
+                    if aluno.quantos_exes_feitos >= qnt_para_10:
+                        aluno.set_nota_final_atividade(10.0)
+                    else:
+                        aluno.set_nota_final_atividade((10/qnt_para_10)*aluno.quantos_exes_feitos)
+                alunos.append(aluno)
+            #Imprime_Alunos(alunos)
+            ultimo = alunos.pop()
+            alunos.sort(key=lambda x: (x.email, -x.nota_final_atividade))
+            alunos_unicos = Gera_lista_sem_duplicados(alunos)
+            alunos_unicos.append(ultimo)
+            print("------"*10)
+            Imprime_Alunos(alunos_unicos)
 
 
-def menu():
-    limpa_tela() #Vai chamar a funçao que vai ficar limpando a tela
-    alunos = []
-    arquivos = glob.glob('*.xlsx') #Vai me retornar uma lista com todos os arquivos .xlsx
-    arquivos.sort()
-    print("------"*10)
-    print("Gerar arquivo dos alunos com atividades feitas")
-    print("------"*10)
-    print("A primeira exocolha tem que ser a lista de presenças.")
-    print("Selecione os arquivos que queiras manipular.")
-    print("------"*10)
+def Caso_1 (): #Criaçao do arquivo com a media das notas finais
+    print("Funcionalidade em desenvolvimento...")   
+
+def Caso_2 (alunos : list[Aluno],arquivos : pd.DataFrame): #Gerar arquivo com presenças EAD
     for i,arq in enumerate(arquivos):
         print(f"[ {i} ] - {arq}")
         nomes, sobre, email, avaliacoes = Pega_Informacoes(pd.read_excel(arq))
@@ -103,8 +72,31 @@ def menu():
     print("------"*10)
     Imprime_Alunos(alunos)
     print("quantidade de alunos: ",len(alunos))
-    gerar_arquivo(alunos)
+    gerar_arquivo_EAD(alunos)
     print("------"*10)
+
+def menu():
+    while True:
+        limpa_tela() #Vai chamar a funçao que vai ficar limpando a tela
+        alunos = []
+        arquivos = glob.glob('*.xlsx') #Vai me retornar uma lista com todos os arquivos .xlsx
+        arquivos.sort()
+        qnt = Opcaes_Menu()
+        escolha = int(input("Escolha qual sera a operação desejada: "))
+        if escolha < 0 or escolha >= qnt:
+            print("Opção inválida! Tente novamente.")
+            break
+        escolha_arquivos = Escolha_Arquivo(arquivos)
+        match escolha:
+            case 0:#Criaçao da nova tabela de notas finais no arquivo
+                Caso_0(escolha_arquivos, arquivos)
+            case 1:#Criaçao do arquivo com a media das notas finais
+                print("Funcionalidade em desenvolvimento...")
+            case 2:#Gerar arquivo com presenças EAD
+                Caso_2(alunos, arquivos)
+            case _:
+                print("Opção inválida! Tente novamente.")
+        input("Pressione Enter para continuar...")
 
 if __name__ == "__main__":
     menu()
